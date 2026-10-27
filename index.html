@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Learning Object Detection Studio</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #1e293b;
+            --bg-card-hover: #273549;
+            --border: #334155;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --accent-glow: rgba(59, 130, 246, 0.35);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --radius-lg: 14px;
+            --radius-md: 10px;
+            --radius-sm: 6px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Navbar */
+        header {
+            background-color: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+
+        .brand-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: white;
+        }
+
+        .brand-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(90deg, #f8fafc, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-tag {
+            font-size: 0.72rem;
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .header-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .badge-live {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.12);
+            padding: 4px 10px;
+            border-radius: 9999px;
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            font-weight: 500;
+        }
+
+        .badge-live::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        /* Main Layout Grid */
+        main {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 1.5rem;
+            padding: 1.5rem 2rem;
+            flex: 1;
+            max-width: 1680px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        @media (max-width: 1024px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sidebar Panels */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Dropzone Upload */
+        .dropzone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.5rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(15, 23, 42, 0.4);
+            position: relative;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.08);
+        }
+
+        .dropzone svg {
+            width: 36px;
+            height: 36px;
+            stroke: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .dropzone p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .dropzone span {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .dropzone input[type="file"] {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* Sample Images Grid */
+        .samples-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.6rem;
+            margin-top: 0.75rem;
+        }
+
+        .sample-item {
+            position: relative;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            aspect-ratio: 4/3;
+            background: #000;
+            transition: all 0.2s;
+        }
+
+        .sample-item:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .sample-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .sample-item .sample-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            font-size: 0.68rem;
+            padding: 3px;
+            text-align: center;
+            color: #cbd5e1;
+        }
+
+        /* Sliders & Controls */
+        .control-group {
+            margin-bottom: 1rem;
+        }
+
+        .control-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.825rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+        }
+
+        .control-val {
+            font-weight: 600;
+            color: var(--accent);
+            font-family: monospace;
+            background: rgba(59, 130, 246, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #334155;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        /* Select box */
+        select {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        /* Action Buttons */
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 4px 14px var(--accent-glow);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #334155;
+            color: var(--text-primary);
+            margin-top: 0.5rem;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #475569;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Main Workspace Viewport */
+        .viewport-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        /* Metric Cards Row */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: monospace;
+        }
+
+        .metric-value.highlight {
+            color: #60a5fa;
+        }
+
+        /* Display Stage */
+        .stage-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 480px;
+        }
+
+        .stage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stage-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: #0f172a;
+            padding: 4px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        .stage-tab {
+            padding: 4px 12px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+
+        .stage-tab.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .stage-display {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #090d16;
+            border-radius: var(--radius-md);
+            border: 1px solid #1e293b;
+            position: relative;
+            overflow: hidden;
+            min-height: 380px;
+        }
+
+        .stage-display img {
+            max-width: 100%;
+            max-height: 540px;
+            object-fit: contain;
+            border-radius: var(--radius-sm);
+        }
+
+        .stage-display video {
+            max-width: 100%;
+            max-height: 540px;
+            border-radius: var(--radius-sm);
+            display: none;
+        }
+
+        .placeholder-text {
+            color: #64748b;
+            font-size: 0.95rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .placeholder-text svg {
+            width: 48px;
+            height: 48px;
+            stroke: #475569;
+        }
+
+        /* Results Breakdown Table */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 0.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.6);
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-align: left;
+            padding: 0.6rem 0.8rem;
+            border-bottom: 1px solid var(--border);
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 0.65rem 0.8rem;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            color: var(--text-primary);
+        }
+
+        tr:hover td {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .pill-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 8px;
+            border-radius: 9999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .color-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .confidence-bar-bg {
+            width: 100px;
+            height: 6px;
+            background: #334155;
+            border-radius: 3px;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        .confidence-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #10b981);
+            border-radius: 3px;
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s ease-in-out infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 1rem 2rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            background: var(--bg-card);
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="brand">
+            <div class="brand-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+            </div>
+            <div>
+                <span class="brand-title">VisionDeep Object Detector</span>
+                <span class="brand-tag">MobileNet-SSD DNN</span>
+            </div>
+        </div>
+        <div class="header-meta">
+            <div class="badge-live">Deep Neural Net Active</div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main>
+        <!-- Left Sidebar Controls -->
+        <div class="sidebar">
+            <!-- Upload & Input Card -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Image Source</span>
+                </div>
+
+                <div class="dropzone" id="dropzone">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242M12 12v9m-4-4 4-4 4 4"/>
+                    </svg>
+                    <p><strong>Click to upload</strong> or drag & drop</p>
+                    <span>JPG, PNG, WEBP (Up to 16MB)</span>
+                    <input type="file" id="fileInput" accept="image/*">
+                </div>
+
+                <div style="margin-top: 1rem;">
+                    <span style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">1-Click Preloaded Samples:</span>
+                    <div class="samples-grid">
+                        <div class="sample-item" onclick="loadSample('sample_traffic.jpg')">
+                            <img src="/static/samples/sample_traffic.jpg" alt="Traffic">
+                            <div class="sample-label">Traffic</div>
+                        </div>
+                        <div class="sample-item" onclick="loadSample('sample_dogs.jpg')">
+                            <img src="/static/samples/sample_dogs.jpg" alt="Living Room">
+                            <div class="sample-label">Dogs/Living</div>
+                        </div>
+                        <div class="sample-item" onclick="loadSample('sample_fruits.jpg')">
+                            <img src="/static/samples/sample_fruits.jpg" alt="Fruits">
+                            <div class="sample-label">Fruits</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-secondary" id="webcamBtn" onclick="toggleWebcam()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 7l-7 5 7 5V7z"></path>
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                    </svg>
+                    <span id="webcamBtnText">Start Live Camera</span>
+                </button>
+            </div>
+
+            <!-- Deep Learning Hyperparameters -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Hyperparameters</span>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label-row">
+                        <span>Confidence Threshold</span>
+                        <span class="control-val" id="confVal">40%</span>
+                    </div>
+                    <input type="range" id="confSlider" min="10" max="95" value="40" step="5" oninput="updateConf(this.value)">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label-row">
+                        <span>NMS IoU Threshold</span>
+                        <span class="control-val" id="nmsVal">45%</span>
+                    </div>
+                    <input type="range" id="nmsSlider" min="10" max="90" value="45" step="5" oninput="updateNms(this.value)">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label-row">
+                        <span>Category Filter</span>
+                    </div>
+                    <select id="classFilter" onchange="triggerDetection()">
+                        <option value="">All 20 Pascal VOC Classes</option>
+                        <option value="car,bus,bicycle,motorbike,aeroplane,boat,train">Vehicles Only</option>
+                        <option value="cat,dog,horse,sheep,cow,bird">Animals Only</option>
+                        <option value="person">Persons Only</option>
+                        <option value="bottle,chair,sofa,diningtable,pottedplant,tvmonitor">Indoor Objects</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary" id="detectBtn" onclick="triggerDetection()">
+                    <span class="spinner" id="btnSpinner"></span>
+                    <span id="btnText">Run Deep Learning Detection</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Center Viewport & Analytics -->
+        <div class="viewport-container">
+            <!-- Metric Cards -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span class="metric-label">Objects Detected</span>
+                    <span class="metric-value highlight" id="mDetections">0</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Inference Latency</span>
+                    <span class="metric-value" id="mLatency">0.0 ms</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Inference Speed</span>
+                    <span class="metric-value" id="mFps">0.0 FPS</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Top Confidence</span>
+                    <span class="metric-value" id="mTopConf">0.0%</span>
+                </div>
+            </div>
+
+            <!-- Visual Display Stage -->
+            <div class="stage-card">
+                <div class="stage-header">
+                    <span class="card-title">Inference Output Viewport</span>
+                    <div class="stage-tabs">
+                        <button class="stage-tab active" id="tabAnnotated" onclick="switchTab('annotated')">Detections</button>
+                        <button class="stage-tab" id="tabOriginal" onclick="switchTab('original')">Original</button>
+                    </div>
+                </div>
+
+                <div class="stage-display" id="stageDisplay">
+                    <div class="placeholder-text" id="placeholder">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        <span>Select a sample or upload an image to begin detection</span>
+                    </div>
+                    <img id="displayImg" style="display:none;" alt="Result">
+                    <video id="webcamVideo" autoplay playsinline muted></video>
+                    <canvas id="webcamCanvas" style="display:none;"></canvas>
+                </div>
+            </div>
+
+            <!-- Detection Breakdown Table -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Detection Breakdown & Bounding Boxes</span>
+                    <button class="btn btn-secondary" style="width: auto; padding: 4px 12px; margin: 0; font-size: 0.78rem;" id="downloadBtn" onclick="downloadAnnotatedImage()" disabled>
+                        Download Image
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Class</th>
+                                <th>Confidence</th>
+                                <th>Bounding Box [X1, Y1, X2, Y2]</th>
+                                <th>Dimensions (WxH)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detectionsTbody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 1.5rem;">
+                                    No detections yet. Run detection above.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        Deep Learning Object Detection Studio • MobileNet-SSD Architecture • OpenCV DNN Engine • Pascal VOC 20 Classes
+    </footer>
+
+    <!-- Client Script -->
+    <script>
+        let currentImageFile = null;
+        let currentSampleName = null;
+        let originalImageSrc = null;
+        let annotatedImageSrc = null;
+        let activeTab = 'annotated';
+        let webcamStream = null;
+        let isWebcamRunning = false;
+        let webcamInterval = null;
+
+        // UI Slider Listeners
+        function updateConf(val) {
+            document.getElementById('confVal').innerText = val + '%';
+        }
+        function updateNms(val) {
+            document.getElementById('nmsVal').innerText = val + '%';
+        }
+
+        // File Input & Dropzone
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                handleFileSelect(e.dataTransfer.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            stopWebcam();
+            currentImageFile = file;
+            currentSampleName = null;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                originalImageSrc = e.target.result;
+                triggerDetection();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function loadSample(filename) {
+            stopWebcam();
+            currentSampleName = filename;
+            currentImageFile = null;
+            originalImageSrc = '/static/samples/' + filename;
+            triggerDetection();
+        }
+
+        function switchTab(tab) {
+            activeTab = tab;
+            document.getElementById('tabAnnotated').classList.toggle('active', tab === 'annotated');
+            document.getElementById('tabOriginal').classList.toggle('active', tab === 'original');
+            const img = document.getElementById('displayImg');
+            if (tab === 'annotated' && annotatedImageSrc) {
+                img.src = annotatedImageSrc;
+            } else if (tab === 'original' && originalImageSrc) {
+                img.src = originalImageSrc;
+            }
+        }
+
+        // Trigger Detection
+        async function triggerDetection() {
+            if (!currentImageFile && !currentSampleName && !isWebcamRunning) {
+                // If nothing selected, load default sample
+                loadSample('sample_traffic.jpg');
+                return;
+            }
+
+            const confThreshold = parseFloat(document.getElementById('confSlider').value) / 100.0;
+            const nmsThreshold = parseFloat(document.getElementById('nmsSlider').value) / 100.0;
+            const targetClasses = document.getElementById('classFilter').value;
+
+            setLoading(true);
+
+            try {
+                let response;
+                if (currentImageFile) {
+                    const formData = new FormData();
+                    formData.append('image', currentImageFile);
+                    formData.append('conf_threshold', confThreshold);
+                    formData.append('nms_threshold', nmsThreshold);
+                    if (targetClasses) formData.append('target_classes', targetClasses);
+
+                    response = await fetch('/api/detect', { method: 'POST', body: formData });
+                } else if (currentSampleName) {
+                    const formData = new FormData();
+                    formData.append('sample', currentSampleName);
+                    formData.append('conf_threshold', confThreshold);
+                    formData.append('nms_threshold', nmsThreshold);
+                    if (targetClasses) formData.append('target_classes', targetClasses);
+
+                    response = await fetch('/api/detect', { method: 'POST', body: formData });
+                }
+
+                const data = await response.json();
+                if (data.success) {
+                    renderResults(data);
+                } else {
+                    alert('Detection error: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Request failed: ' + err.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function renderResults(data) {
+            // Update Metrics
+            document.getElementById('mDetections').innerText = data.num_detections;
+            document.getElementById('mLatency').innerText = data.inference_time_ms.toFixed(1) + ' ms';
+            document.getElementById('mFps').innerText = data.fps_equivalent.toFixed(1) + ' FPS';
+
+            let topConf = 0.0;
+            if (data.detections.length > 0) {
+                topConf = Math.max(...data.detections.map(d => d.confidence_percent));
+            }
+            document.getElementById('mTopConf').innerText = topConf.toFixed(1) + '%';
+
+            // Show Annotated Image
+            annotatedImageSrc = data.annotated_image;
+            const img = document.getElementById('displayImg');
+            img.src = (activeTab === 'annotated') ? annotatedImageSrc : originalImageSrc;
+            img.style.display = 'block';
+            document.getElementById('placeholder').style.display = 'none';
+            document.getElementById('downloadBtn').disabled = false;
+
+            // Render Table
+            const tbody = document.getElementById('detectionsTbody');
+            tbody.innerHTML = '';
+
+            if (data.detections.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: #94a3b8; padding: 1.5rem;">No objects detected above threshold. Try lowering confidence.</td></tr>`;
+                return;
+            }
+
+            data.detections.forEach((d, idx) => {
+                const tr = document.createElement('tr');
+                const bw = d.box[2] - d.box[0];
+                const bh = d.box[3] - d.box[1];
+
+                tr.innerHTML = `
+                    <td><strong>#${idx + 1}</strong></td>
+                    <td>
+                        <span class="pill-badge" style="background: rgba(255,255,255,0.06); border: 1px solid ${d.color_hex};">
+                            <span class="color-dot" style="background: ${d.color_hex};"></span>
+                            ${d.label.toUpperCase()}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="confidence-bar-bg">
+                            <div class="confidence-bar-fill" style="width: ${d.confidence_percent}%;"></div>
+                        </div>
+                        <strong>${d.confidence_percent}%</strong>
+                    </td>
+                    <td><code style="color: #93c5fd; background:#0f172a; padding: 2px 6px; border-radius: 4px;">[${d.box.join(', ')}]</code></td>
+                    <td>${bw} × ${bh} px</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function setLoading(loading) {
+            const btn = document.getElementById('detectBtn');
+            const spinner = document.getElementById('btnSpinner');
+            const btnText = document.getElementById('btnText');
+            if (loading) {
+                spinner.style.display = 'inline-block';
+                btnText.innerText = 'Detecting...';
+                btn.disabled = true;
+            } else {
+                spinner.style.display = 'none';
+                btnText.innerText = 'Run Deep Learning Detection';
+                btn.disabled = false;
+            }
+        }
+
+        function downloadAnnotatedImage() {
+            if (!annotatedImageSrc) return;
+            const a = document.createElement('a');
+            a.href = annotatedImageSrc;
+            a.download = 'detected_objects.jpg';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // Live Webcam Mode
+        async function toggleWebcam() {
+            if (isWebcamRunning) {
+                stopWebcam();
+            } else {
+                startWebcam();
+            }
+        }
+
+        async function startWebcam() {
+            try {
+                webcamStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                const video = document.getElementById('webcamVideo');
+                video.srcObject = webcamStream;
+                video.style.display = 'block';
+                document.getElementById('displayImg').style.display = 'none';
+                document.getElementById('placeholder').style.display = 'none';
+
+                isWebcamRunning = true;
+                document.getElementById('webcamBtnText').innerText = 'Stop Live Camera';
+                document.getElementById('webcamBtn').classList.add('btn-primary');
+
+                // Process frames continuously
+                runWebcamInferenceLoop();
+            } catch (err) {
+                alert('Could not access webcam: ' + err.message);
+            }
+        }
+
+        function stopWebcam() {
+            if (webcamStream) {
+                webcamStream.getTracks().forEach(t => t.stop());
+                webcamStream = null;
+            }
+            if (webcamInterval) {
+                clearTimeout(webcamInterval);
+                webcamInterval = null;
+            }
+            isWebcamRunning = false;
+            document.getElementById('webcamVideo').style.display = 'none';
+            document.getElementById('webcamBtnText').innerText = 'Start Live Camera';
+            document.getElementById('webcamBtn').classList.remove('btn-primary');
+        }
+
+        async function runWebcamInferenceLoop() {
+            if (!isWebcamRunning) return;
+
+            const video = document.getElementById('webcamVideo');
+            const canvas = document.getElementById('webcamCanvas');
+            if (video.videoWidth > 0) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const b64 = canvas.toDataURL('image/jpeg', 0.7);
+
+                const conf = parseFloat(document.getElementById('confSlider').value) / 100.0;
+                const nms = parseFloat(document.getElementById('nmsSlider').value) / 100.0;
+                const targetClasses = document.getElementById('classFilter').value;
+
+                try {
+                    const resp = await fetch('/api/detect', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            image_base64: b64,
+                            conf_threshold: conf,
+                            nms_threshold: nms,
+                            target_classes: targetClasses ? targetClasses.split(',') : []
+                        })
+                    });
+                    const data = await resp.json();
+                    if (data.success && isWebcamRunning) {
+                        const img = document.getElementById('displayImg');
+                        img.src = data.annotated_image;
+                        img.style.display = 'block';
+                        video.style.display = 'none';
+                        renderResults(data);
+                    }
+                } catch (e) {
+                    console.warn(e);
+                }
+            }
+
+            if (isWebcamRunning) {
+                webcamInterval = setTimeout(runWebcamInferenceLoop, 200);
+            }
+        }
+
+        // On Load: trigger initial sample
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSample('sample_dogs.jpg');
+        });
+    </script>
+</body>
+</html>
